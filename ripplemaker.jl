@@ -37,8 +37,8 @@ ws=WS(0,false)#cc(sto.wsc,sto.wsport),true)
 
 function find(str::String,reply=sto.reply;delim='}')
 	loc=search(reply,str)
-	if loc[1]==0
-		return "Not found. "
+	if isempty(loc) || loc[1]==0
+		error("$str not found. ")
 	end
 	le=loc[end]
 	while reply[le]!=delim 
@@ -54,6 +54,17 @@ function getnum(str::String)
 		b+=1
 	end
 	return float(str[m.offset:b])
+end	
+function getvalue(val::String,str::String=sto.reply)
+#	print(str)
+	rval=find(val,str,delim=',')[1]
+#	print(rval)
+	dlm=search(rval,':')
+#	println("dlm:$dlm")
+	if dlm==0
+		error(": not found.")
+	end
+	val=rval[(dlm+1):(end-1)]
 end	
 function makereq(cmd)
 	return """{"command":"$cmd"}"""
@@ -150,6 +161,15 @@ function book_offers(currency1,issuer1,currency2="XRP",issuer2="";limit=3)
 	creq*=tp
 	creq*=""","limit":$limit }]}"""
 #	{"currency":"$currency1","issuer":"$issuer1"} ,"taker_pays":{"currency":"$currency2"},"limit":$limit }]}"""
+	curlreq(creq)
+end
+function submit(amount::Int,destination::String)
+	creq="""{ "method" : "sign", "params" : [ { "secret" : "$(account.secret)", "tx_json" : {"TransactionType":"Payment",  "Account":"$(account.address)", "Amount":"$amount", "Destination":"$destination" }} ] }"""
+	curlreq(creq)	
+	txb=getvalue("tx_blob")
+#	println("txb: $txb")
+	creq="""{ "method" : "submit", "params" : [ { "tx_blob" : $txb } ] }"""
+#	println(creq)
 	curlreq(creq)
 end
 end #rm
