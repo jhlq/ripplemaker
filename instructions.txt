@@ -1,5 +1,5 @@
 Send arbitrary requests with Rm.req(request,[op1 a;op2 b]):
-Rm.req("account_info",["account" $(Rm.account.address);"strict" true])
+Rm.req("account_info",["account" Rm.account.address;"strict" true])
 
 To get prices:
 Rm.book_offers("USD","rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B","BTC","rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B")
