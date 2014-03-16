@@ -3,11 +3,20 @@
 module Rm
 export req
 
-wsc="wss://s1.ripple.com"
-port=443
+include("curl.jl")
+include("marketdepth.jl")
+
+type Storage
+	wsc::String
+	wsport::Int
+	rpcc::String
+	rpcport::Int
+	reply::String
+end
+sto=Storage("wss://s1.ripple.com",443,"https://s1.ripple.com",51234,"Nothing received.")
 using PyCall
 cc = pyimport("websocket")[:create_connection]
-rws = cc(wsc,port)
+#rws = cc(sto.wsc,sto.wsport)
 type acc
 	address::String
 	secret::String
@@ -15,8 +24,9 @@ end
 account=acc("rGDWKWni6exeneJdNbEZ3nVX3Rrw5VG1p1","sss")
 type WS
 	r::PyObject
+	isvalid::Bool
 end
-ws=WS(cc(wsc,port))
+ws=WS(0,false)#cc(sto.wsc,sto.wsport),true)
 
 #streamledger="""{"command":"subscribe","id":0,"streams":["ledger"]}"""
 #accinfo="""{"command":"account_info","account":"r3kmLJN5D28dHuH8vZNUZpMC43pEHpaocV"}"""
@@ -25,7 +35,26 @@ ws=WS(cc(wsc,port))
 #reply=ripplesocket[:recv]()
 #println(reply)
 
-
+function find(str::String,reply=sto.reply;delim='}')
+	loc=search(reply,str)
+	if loc[1]==0
+		return "Not found. "
+	end
+	le=loc[end]
+	while reply[le]!=delim 
+		le+=1
+	end
+	f1=reply[loc[1]:le]
+	return f1,le	
+end
+function getnum(str::String)
+	m=match(r"[0-9]",str)
+	b=m.offset
+	while !ismatch(r"[^0-9.]",str[b:(b+1)])
+		b+=1
+	end
+	return float(str[m.offset:b])
+end	
 function makereq(cmd)
 	return """{"command":"$cmd"}"""
 end
@@ -47,21 +76,29 @@ function req(request,tries=3)
 		request=makereq(request)
 	end
 	try
+		println("Sending.. $request")
 		ws.r[:send](request)
+		println("Receiving..")
 		reply=ws.r[:recv]()
+		println("Returning..")
 		return reply
 	catch erx
 		if tries<1
 			return erx
 		end
-		ws.r=cc(wsc,port)
+		ws.r=cc(sto.wsc,sto.wsport)
 		return req(request,tries-1)
 	end
 end
 function req(cmd,ops::Array)
-	request=makereq(cmd,ops)
-	req(request)
+	if ws.isvalid
+		request=makereq(cmd,ops)
+		req(request)
+	else
+		curlreq(cmd,ops)
+	end
 end
+
 function setaccount(acc)
 	Rm.account.address=acc
 end
@@ -96,5 +133,23 @@ function account_tx(account)
 	request="""{"command":"account_tx","account":"$account"}"""
 	req(request)
 end
-
+function book_offers(currency1,issuer1,currency2="XRP",issuer2="";limit=3)
+	creq="""{"method":"book_offers","params":[{  "taker_gets":"""
+	if currency1=="XRP"
+		tg="""{"currency":"XRP"}"""
+	else
+		tg="""{"currency":"$currency1","issuer":"$issuer1"}"""
+	end
+	creq*=tg
+	creq*=""","taker_pays":"""
+	if currency2=="XRP"
+		tp="""{"currency":"XRP"}"""
+	else
+		tp="""{"currency":"$currency2","issuer":"$issuer2"}"""
+	end
+	creq*=tp
+	creq*=""","limit":$limit }]}"""
+#	{"currency":"$currency1","issuer":"$issuer1"} ,"taker_pays":{"currency":"$currency2"},"limit":$limit }]}"""
+	curlreq(creq)
+end
 end #rm

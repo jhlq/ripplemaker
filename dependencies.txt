@@ -1,1 +1,5 @@
-Julia 0.3, python and https://pypi.python.org/pypi/websocket-client/
+Julia 0.3
+For websocket:
+Python and https://pypi.python.org/pypi/websocket-client/
+For rpc:
+Curl
