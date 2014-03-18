@@ -11,7 +11,11 @@ function makemethod(cmd,ops::Array) #ops=["ledger_hash" "2A213C0B2EA3A2585039658
 	end
 	request*=""" "$(ops[1,1])":"$(ops[1,2])" """
 	for nop in 2:nops
-		request*=""","$(ops[nop,1])":"$(ops[nop,2])" """
+		q=""
+		if ops[nop,2][1]!='{'
+			q="\""
+		end
+		request*=""","$(ops[nop,1])":$q$(ops[nop,2])$q """
 	end
 	request*="}]}"
 end
