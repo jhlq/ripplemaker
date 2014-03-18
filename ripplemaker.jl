@@ -6,6 +6,10 @@ export req
 include("curl.jl")
 include("marketdepth.jl")
 
+type Cur
+	CUR
+	issuer
+end
 type Storage
 	wsc::String
 	wsport::Int
@@ -113,8 +117,14 @@ end
 function setaccount(acc)
 	Rm.account.address=acc
 end
+function setaccount(acc,sec)
+	Rm.account.address=acc
+	Rm.account.secret=sec
+	return nothing
+end
 function setsecret(sec)
 	Rm.account.secret=sec
+	return nothing
 end
 function account_info(account;strict=false,index=false,ledger_hash=false,ledger_index=false)
 	accinfo="""{"command":"account_info","account":"$account" """
@@ -165,11 +175,47 @@ function book_offers(currency1,issuer1,currency2="XRP",issuer2="";limit=3)
 end
 function submit(amount::Int,destination::String)
 	creq="""{ "method" : "sign", "params" : [ { "secret" : "$(account.secret)", "tx_json" : {"TransactionType":"Payment",  "Account":"$(account.address)", "Amount":"$amount", "Destination":"$destination" }} ] }"""
+	#creq=makemethod("sign",["secret" account.secret;"tx_json" maketx..
 	curlreq(creq)	
 	txb=getvalue("tx_blob")
 #	println("txb: $txb")
 	creq="""{ "method" : "submit", "params" : [ { "tx_blob" : $txb } ] }"""
 #	println(creq)
+	curlreq(creq)
+end
+function maketx(TType::String,ops::Array)
+	tx="""{"TransactionType":"$TType" """
+	nops=length(ops[:,1])
+	for nop in 1:nops
+		q=""
+		if ops[nop,2][1]!='{'
+			q="\""
+		end
+		tx*=""","$(ops[nop,1])":$q$(ops[nop,2])$q """
+	end
+	tx*="}"
+end
+function makeCUR(CUR::String,val::Float64,issuer::String)
+	"""{"currency":"$CUR","value":"$val","issuer":"$issuer"}"""
+end
+function makeCUR(amount::Number,CUR::Cur)
+	if CUR.CUR=="XRP"
+		return "$amount"
+	else
+		return """{"currency":"$(CUR.CUR)","value":"$amount","issuer":"$(CUR.issuer)"}"""
+	end
+end
+function submit(amount::Float64,CUR::String,issuer::String,destination::String)
+	creq=makemethod("sign",["secret" account.secret;"tx_json" maketx("Payment",["Account" account.address;"Destination" destination;"Amount" makeCUR(CUR,amount,issuer);"SendMax" makeCUR(CUR,amount*1.01,issuer)])])
+	println(creq)
+	curlreq(creq)	
+	txb=getvalue("tx_blob")
+	creq="""{ "method" : "submit", "params" : [ { "tx_blob" : $txb } ] }"""#makemethod("submit",["tx_blob" txb]) doesnt work because of extra curly braces
+	println(creq)
+	curlreq(creq)
+end
+function OfferCreate(TakerPaysAmount::Number,TakerPaysCur::Cur,TakerGetsAmount::Number,TakerGetsCur::Cur)
+	creq=makemethod("submit",["secret" account.secret;"tx_json" maketx("OfferCreate",["Account" account.address;"TakerPays" makeCUR(TakerPaysAmount,TakerPaysCur);"TakerGets" makeCUR(TakerGetsAmount,TakerGetsCur)])])
 	curlreq(creq)
 end
 end #rm

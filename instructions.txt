@@ -9,6 +9,8 @@ tp=Rm.getnum(Rm.find("value",Rm.find("TakerPays")[1])[1]) #parse takerpays BTC
 price=tg/tp #USD per BTC
 
 To send 1 XRP:
-Rm.setaccount("rrr")
-Rm.setsecret("sss")
+Rm.setaccount("rrr","sss")
 Rm.submit(1000000,"rrrecipient")
+
+To trade:
+Rm.OfferCreate(1,Rm.Cur("CAD","r3ADD8kXSUKHd6zTCKfnKT3zV9EZHjzp1S"),5,Rm.Cur("CNY","rnuF96W4SZoCJmbHYBFoJZpR8eCaxNvekK"))
