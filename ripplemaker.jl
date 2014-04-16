@@ -77,7 +77,11 @@ function makereq(cmd,ops) #ops=["ledger_hash" "2A213C0B2EA3A2585039658CB8CB13819
 	request="""{"command":"$cmd" """
 	nops=length(ops[:,1])
 	for nop in 1:nops
-		request*=""","$(ops[nop,1])":"$(ops[nop,2])" """
+		q=""
+		if ops[nop,2][1]!='{'
+			q="\""
+		end
+		request*=""","$(ops[nop,1])":$q$(ops[nop,2])$q """
 	end
 	request*="}"
 end
@@ -171,6 +175,7 @@ function book_offers(currency1,issuer1,currency2="XRP",issuer2="";limit=3)
 	creq*=tp
 	creq*=""","limit":$limit }]}"""
 #	{"currency":"$currency1","issuer":"$issuer1"} ,"taker_pays":{"currency":"$currency2"},"limit":$limit }]}"""
+#	println(creq)
 	curlreq(creq)
 end
 function submit(amount::Int,destination::String)

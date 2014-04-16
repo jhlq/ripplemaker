@@ -9,7 +9,11 @@ function makemethod(cmd,ops::Array) #ops=["ledger_hash" "2A213C0B2EA3A2585039658
 	if nops<1
 		error("Empty options vector")
 	end
-	request*=""" "$(ops[1,1])":"$(ops[1,2])" """
+	if ops[1,2][1]!='{'
+		request*=""" "$(ops[1,1])":"$(ops[1,2])" """
+	else
+		request*=""" "$(ops[1,1])":$(ops[1,2]) """
+	end
 	for nop in 2:nops
 		q=""
 		if ops[nop,2][1]!='{'
