@@ -3,3 +3,7 @@ For websocket:
 Python and https://pypi.python.org/pypi/websocket-client/
 For rpc:
 Curl
+
+For rest:
+Julia 0.2
+Julia packages JSON and Requests

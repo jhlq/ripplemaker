@@ -14,3 +14,17 @@ Rm.submit(1000000,"rrrecipient")
 
 To trade:
 Rm.OfferCreate(1,Rm.Cur("CAD","r3ADD8kXSUKHd6zTCKfnKT3zV9EZHjzp1S"),5,Rm.Cur("CNY","rnuF96W4SZoCJmbHYBFoJZpR8eCaxNvekK"))
+
+To communicate with an instance of ripple-rest load rest.jl, modify the acc and url variables and then check balances with:
+balance()
+balance("BTC")
+balance("USD","rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B")
+
+Trustlines with:
+reply=trustlines()
+print(json(reply))
+
+Traverse transactions given an initial hash through:
+reply=notifications("hash")
+notifications(reply["previous_hash"])
+notifications(reply["next_hash"])
