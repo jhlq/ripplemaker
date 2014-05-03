@@ -1,9 +1,7 @@
-Julia 0.3
-For websocket:
-Python and https://pypi.python.org/pypi/websocket-client/
-For rpc:
+Julia
+Julia package PyCall 
+https://pypi.python.org/pypi/websocket-client/
 Curl
 
 For rest:
-Julia 0.2
 Julia packages JSON and Requests

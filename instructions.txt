@@ -8,12 +8,17 @@ tg=Rm.getnum(Rm.find("value",Rm.find("TakerGets")[1])[1]) #parse takergets USD
 tp=Rm.getnum(Rm.find("value",Rm.find("TakerPays")[1])[1]) #parse takerpays BTC 
 price=tg/tp #USD per BTC
 
-To send 1 XRP:
+To send 1 XRP and then 1 GDW:
 Rm.setaccount("rrr","sss")
 Rm.submit(1000000,"rrrecipient")
+Rm.submit(1,"GDW","rGDWKWni6exeneJdNbEZ3nVX3Rrw5VG1p1","rrrecipient")
+
+If there is an error:
+print(Rm.sto.reply) #to see what rippled said
 
 To trade:
 Rm.OfferCreate(1,Rm.Cur("CAD","r3ADD8kXSUKHd6zTCKfnKT3zV9EZHjzp1S"),5,Rm.Cur("CNY","rnuF96W4SZoCJmbHYBFoJZpR8eCaxNvekK"))
+
 
 To communicate with an instance of ripple-rest load rest.jl, modify the acc and url variables and then check balances with:
 balance()

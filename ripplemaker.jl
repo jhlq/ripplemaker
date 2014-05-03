@@ -30,7 +30,7 @@ type WS
 	r::PyObject
 	isvalid::Bool
 end
-ws=WS(0,false)#cc(sto.wsc,sto.wsport),true)
+ws=WS(cc(sto.wsc,sto.wsport),true)
 
 #streamledger="""{"command":"subscribe","id":0,"streams":["ledger"]}"""
 #accinfo="""{"command":"account_info","account":"r3kmLJN5D28dHuH8vZNUZpMC43pEHpaocV"}"""
@@ -150,11 +150,11 @@ function account_lines(account;account_index=0,peer=false,peer_index=0)
 	acclin*=""" "peer_index":"$peer_index"}"""
 	req(acclin)
 end
-function account_offers(account)
+function account_offers(account::String=account.address)
 	request="""{"command":"account_offers","account":"$account"}"""
 	req(request)
 end
-function account_tx(account)
+function account_tx(account::String=account.address)
 	request="""{"command":"account_tx","account":"$account"}"""
 	req(request)
 end
@@ -200,7 +200,7 @@ function maketx(TType::String,ops::Array)
 	end
 	tx*="}"
 end
-function makeCUR(CUR::String,val::Float64,issuer::String)
+function makeCUR(CUR::String,val::Number,issuer::String)
 	"""{"currency":"$CUR","value":"$val","issuer":"$issuer"}"""
 end
 function makeCUR(amount::Number,CUR::Cur)
@@ -210,7 +210,7 @@ function makeCUR(amount::Number,CUR::Cur)
 		return """{"currency":"$(CUR.CUR)","value":"$amount","issuer":"$(CUR.issuer)"}"""
 	end
 end
-function submit(amount::Float64,CUR::String,issuer::String,destination::String)
+function submit(amount::Number,CUR::String,issuer::String,destination::String)
 	creq=makemethod("sign",["secret" account.secret;"tx_json" maketx("Payment",["Account" account.address;"Destination" destination;"Amount" makeCUR(CUR,amount,issuer);"SendMax" makeCUR(CUR,amount*1.01,issuer)])])
 	println(creq)
 	curlreq(creq)	
